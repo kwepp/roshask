@@ -46,14 +46,14 @@ from std_srvs.srv import *
 import rospy 
 
 def add_two_ints(req):
-    print "Returning [%s + %s = %s]"%(req.a, req.b, (req.a + req.b))
+    print("Returning [%s + %s = %s]"%(req.a, req.b, (req.a + req.b)))
     if (req.a == 100 and req.b == 100):
         return None
     else:
         return AddTwoIntsResponse(req.a + req.b)
 
 def empty_callback(req):
-    print "Got empty request"
+    print("Got empty request")
     return []
 
 def add_two_ints_server():

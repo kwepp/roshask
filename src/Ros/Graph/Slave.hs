@@ -175,9 +175,9 @@ simpleServe port handler = simpleHttpServe conf handler
 -- closing it.
 findFreePort :: IO Int
 findFreePort = do s <- socket AF_INET Net.Stream defaultProtocol
-                  bindSocket s (SockAddrInet aNY_PORT iNADDR_ANY)
+                  bind s (SockAddrInet defaultPort (tupleToHostAddress (0,0,0,0)))
                   port <- fromInteger . toInteger <$> socketPort s
-                  sClose s
+                  close s
                   return port
 
 -- |Run a ROS slave node. Returns an action that will wait for the

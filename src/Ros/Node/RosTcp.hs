@@ -13,7 +13,7 @@ import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 
-import Network.BSD (getHostByName, hostAddress)
+--import Network.BSD (getHostByName, hostAddress)
 import Network.Socket hiding (send, sendTo, recv, recvFrom, Stream, ServiceName)
 import qualified Network.Socket as Sock
 import Network.Socket.ByteString
@@ -175,9 +175,12 @@ subStream target tname _updateStats =
                             (1,_,("TCPROS",_,port')) -> fromIntegral port'
                             _ -> error $ "Couldn't get publisher's port for "++
                                          tname++" from node "++target
-               sock <- socket AF_INET Sock.Stream defaultProtocol
-               ip <- hostAddress <$> getHostByName host
-               connect sock $ SockAddrInet port ip
+--               sock <- socket AF_INET Sock.Stream defaultProtocol
+               addr:_ <- getAddrInfo (Just $ defaultHints { addrFamily = AF_INET, addrSocketType = Sock.Stream }) (Just host) (Just . show $ port)
+               sock <- socket (addrFamily addr) (addrSocketType addr) (addrProtocol addr)
+                
+--               ip <- undefined -- hostAddress <$> getHostByName host
+               connect sock $ addrAddress addr
                let md5 = sourceMD5 (undefined::a)
                    ttype = msgTypeName (undefined::a)
                negotiateSub sock tname ttype md5
@@ -221,8 +224,12 @@ callServiceWithMaster rosMaster serviceName message = runExceptT $ do
       withSocket sock = do
         ioErrorToExceptT ConnectExcept "Problem connecting to server. Got exception : " $ do
           --Connect to the socket
-          ip <- hostAddress <$> getHostByName host
-          connect sock $ SockAddrInet port ip
+--          ip <- undefined -- hostAddress <$> getHostByName host
+           addr:_ <- getAddrInfo (Just $ defaultHints { addrFamily = AF_INET, addrSocketType = Sock.Stream }) (Just host) (Just . show $ port)
+--               sock <- socket (addrFamily addr) (addrSocketType addr) (addrProtocol addr)
+                
+           connect sock $ addrAddress addr
+--          connect sock $ SockAddrInet port ip
         let reqMd5 = srvMD5 message
             reqServiceType = srvTypeName message
         negotiateService sock serviceName reqServiceType reqMd5
@@ -300,7 +307,7 @@ runServerAux negotiate pubAction _updateStats bufferSize =
     do r <- ask
        liftIO . withSocketsDo $ runReaderT go r
   where go = do sock <- liftIO $ socket AF_INET Sock.Stream defaultProtocol
-                liftIO $ bindSocket sock (SockAddrInet aNY_PORT iNADDR_ANY)
+                liftIO $ bind sock (SockAddrInet defaultPort (tupleToHostAddress (0,0,0,0)))
                 port <- liftIO (fromInteger . toInteger <$> socketPort sock)
                 liftIO $ listen sock 5
                 clients <- liftIO $ newTVarIO []

@@ -15,7 +15,7 @@ registerPublication :: RosSlave n =>
                        (TopicName, TopicType, a) -> Config ()
 registerPublication name _n master uri (tname, ttype, _) = 
     do debug $ "Registering publication of "++ttype++" on topic "++
-               tname++" on master "++master
+               tname++" on master "++master++ " "++uri
        _subscribers <- liftIO $ registerPublisher master name tname ttype uri
        return ()
 

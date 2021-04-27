@@ -10,6 +10,7 @@ import Distribution.Simple.InstallDirs
 import Distribution.Simple.LocalBuildInfo
 import Distribution.Simple.Setup
 import Distribution.PackageDescription hiding (Library)
+import Distribution.Types.UnqualComponentName
 import System.Directory (getCurrentDirectory)
 import System.FilePath ((</>))
 import Ros.Internal.DepFinder
@@ -26,8 +27,8 @@ addRosMsgPaths targets =
        writeFile ".ghci" $ ":set -i"++ intercalate ":" msgPaths
        let binfo = emptyBuildInfo { hsSourceDirs = msgPaths }
        case targets of
-         LibraryAndExecutables exes -> return (Just binfo, map (,binfo) exes)
-         Executables exes -> return (Nothing, map (,binfo) exes)
+         LibraryAndExecutables exes -> return (Just binfo, map ((,binfo) . mkUnqualComponentName) exes)
+         Executables exes -> return (Nothing, map ((,binfo) . mkUnqualComponentName) exes)
 
 -- |The @buildHook@ override integrates a new 'HookedBuildInfo' with
 -- the 'PackageDescription' in order to include additional directories
@@ -38,7 +39,7 @@ rosBuild :: PackageDescription -> LocalBuildInfo -> UserHooks ->
 rosBuild pkg lbi uh bfs = do binfo <- addRosMsgPaths targets
                              let pkg' = updatePackageDescription binfo pkg
                              (buildHook simpleUserHooks) pkg' lbi uh bfs
-    where exeTargets = map exeName $ executables pkg
+    where exeTargets = map (unUnqualComponentName . exeName) $ executables pkg
           targets = case library pkg of
                       Nothing -> Executables exeTargets
                       Just _ -> LibraryAndExecutables exeTargets

@@ -7,6 +7,7 @@ import Control.Concurrent.STM (atomically, TVar, readTVar, writeTVar)
 import Control.Monad.State
 import Control.Monad.Reader
 import Data.Dynamic
+import Data.Typeable
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Set (Set)
