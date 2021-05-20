@@ -170,7 +170,7 @@ addField t@(RFixedArray n el) =
     do elInfo <- getTypeInfo el
        arr <- if isStorable elInfo
               then do lst <- vecOf el
-                      return $ SerialInfo lst "put" "get" 
+                      return $ SerialInfo lst "putFixed" ("getFixed " <> B.pack (show n)) 
                                           (Just $ mulSize n elInfo)
               else do lst <- listOf el
                       return $ SerialInfo lst "putFixedList" "getFixedList"
