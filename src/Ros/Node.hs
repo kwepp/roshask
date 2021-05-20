@@ -71,7 +71,7 @@ addSource :: (RosBinary a, MsgInfo a) =>
              Config ThreadId
 addSource tname updateStats c uri =
     forkConfig $ subStream uri tname (updateStats uri) >>=
-                 liftIO . forever . join . fmap (writeChan c)
+                 liftIO . forever . join . fmap (tryWriteChan c)
 
 -- Create a new Subscription value that will act as a named input
 -- channel with zero or more connected publishers.
